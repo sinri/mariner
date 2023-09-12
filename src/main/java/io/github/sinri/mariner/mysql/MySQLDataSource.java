@@ -97,7 +97,7 @@ public class MySQLDataSource {
 
     protected <T> T execute(String sql, Function<PreparedStatement, T> preparedStatementHandler) {
         return this.acquireConnectionToUse(connection -> {
-            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 return preparedStatementHandler.apply(preparedStatement);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -105,48 +105,49 @@ public class MySQLDataSource {
         });
     }
 
-    public QueriedResult executeForQueriedMatrix(String sql) {
+    public QueriedResult executeForMatrix(String sql) {
         return this.execute(sql, preparedStatement -> {
             try {
-                boolean isFirstSQLARead = preparedStatement.execute();
-                if (isFirstSQLARead) {
-                    try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                        // for result set
-                        int columnCount = resultSet.getMetaData().getColumnCount();
-                        List<String> columnNames = new ArrayList<>();
+                try (ResultSet resultSet = preparedStatement.executeQuery(sql)) {
+                    // for result set
+                    int columnCount = resultSet.getMetaData().getColumnCount();
+                    List<String> columnNames = new ArrayList<>();
+                    for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
+                        String columnLabel = resultSet.getMetaData().getColumnLabel(columnIndex);
+                        columnNames.add(columnLabel);
+                    }
+
+                    QueriedResult queriedResult = new QueriedResult(columnNames);
+
+                    while (resultSet.next()) {
+                        List<Object> columnValues = new ArrayList<>();
                         for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
-                            String columnLabel = resultSet.getMetaData().getColumnLabel(columnIndex);
-                            columnNames.add(columnLabel);
+                            var x = resultSet.getObject(columnIndex);
+                            columnValues.add(x);
                         }
-
-                        QueriedResult queriedResult = new QueriedResult(columnNames);
-
-                        while (resultSet.next()) {
-                            List<Object> columnValues = new ArrayList<>();
-                            for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
-                                var x = resultSet.getObject(columnIndex);
-                                columnValues.add(x);
-                            }
-                            QueriedRow queriedRow = new QueriedRow(columnNames, columnValues);
-                            queriedResult.addRow(queriedRow);
-                        }
-                        return queriedResult;
+                        QueriedRow queriedRow = new QueriedRow(columnNames, columnValues);
+                        queriedResult.addRow(queriedRow);
                     }
-                } else {
-                    // for afx
-                    int afx = preparedStatement.getUpdateCount();
-
-                    // for last inserted id
-                    Long lastInsertId = null;
-                    try (ResultSet resultSet = preparedStatement.getGeneratedKeys()) {
-                        if (resultSet.next()) {
-                            lastInsertId = resultSet.getLong(1);
-                        }
-                    }
-
-                    return new QueriedResult(afx, lastInsertId);
+                    return queriedResult;
                 }
             } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public QueriedResult executeForModification(String sql) {
+        return this.execute(sql, preparedStatement -> {
+            try {
+                int afx = preparedStatement.executeUpdate();
+                Long lastInsertId = null;
+                try (ResultSet resultSet = preparedStatement.getGeneratedKeys()) {
+                    if (resultSet.next()) {
+                        lastInsertId = resultSet.getLong(1);
+                    }
+                }
+                return new QueriedResult(afx, lastInsertId);
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         });
