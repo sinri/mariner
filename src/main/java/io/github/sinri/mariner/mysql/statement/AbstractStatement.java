@@ -1,8 +1,17 @@
 package io.github.sinri.mariner.mysql.statement;
 
+import io.github.sinri.mariner.mysql.MySQLConnectionWrapper;
+import io.github.sinri.mariner.mysql.dao.MarinerQueriedResult;
+
 import java.util.UUID;
 
 abstract public class AbstractStatement {
+    protected static String SQL_COMPONENT_SEPARATOR = " ";//"\n";
+
+    public static void setSqlComponentSeparator(String sqlComponentSeparator) {
+        SQL_COMPONENT_SEPARATOR = sqlComponentSeparator;
+    }
+
     protected final String statementUuid;
 
     public AbstractStatement() {
@@ -14,17 +23,5 @@ abstract public class AbstractStatement {
      */
     public abstract String toString();
 
-    /**
-     * @param sql
-     * @return
-     * @since 3.0.0
-     */
-    public static AbstractStatement buildWithRawSQL(String sql) {
-        return new AbstractStatement() {
-            @Override
-            public String toString() {
-                return sql;
-            }
-        };
-    }
+    public abstract MarinerQueriedResult run(MySQLConnectionWrapper connectionWrapper);
 }

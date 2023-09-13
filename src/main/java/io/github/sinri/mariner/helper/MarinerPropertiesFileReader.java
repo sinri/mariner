@@ -5,10 +5,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
-public class PropertiesFileReader {
+public class MarinerPropertiesFileReader {
     Properties properties = new Properties();
 
-    public PropertiesFileReader(String propertiesFileName) {
+    public MarinerPropertiesFileReader(String propertiesFileName) {
         try {
             // here, the file named as `propertiesFileName` should be put along with JAR
             properties.load(new FileReader(propertiesFileName, StandardCharsets.UTF_8));
