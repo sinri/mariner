@@ -3,7 +3,7 @@ package io.github.sinri.mariner.test;
 import io.github.sinri.mariner.task.inquisition.InquisitionTask;
 import io.github.sinri.mariner.task.inquisition.Inquisitor;
 
-public class Test3 {
+public class TaskTestA {
     public static void main(String[] args) throws InterruptedException {
         Inquisitor inquisitor = new Inquisitor(2, 4, 5);
 

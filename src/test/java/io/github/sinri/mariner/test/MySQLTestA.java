@@ -8,7 +8,7 @@ import io.github.sinri.mariner.mysql.exception.MarinerMySQLTransactionRollbackOc
 
 import java.util.UUID;
 
-public class Test1 {
+public class MySQLTestA {
     public static void main(String[] args) {
         try {
             MarinerPropertiesFileReader propertiesFileReader = new MarinerPropertiesFileReader("config.properties");
