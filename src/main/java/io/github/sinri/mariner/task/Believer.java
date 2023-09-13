@@ -1,10 +1,11 @@
-package io.github.sinri.mariner.apostle;
+package io.github.sinri.mariner.task;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
+@Deprecated
 public class Believer {
     private final Future<Object> future;
     private Consumer<Object> completeHandler = null;

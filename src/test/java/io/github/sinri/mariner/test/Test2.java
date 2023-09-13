@@ -1,6 +1,6 @@
 package io.github.sinri.mariner.test;
 
-import io.github.sinri.mariner.apostle.Apostle;
+import io.github.sinri.mariner.task.Apostle;
 
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;

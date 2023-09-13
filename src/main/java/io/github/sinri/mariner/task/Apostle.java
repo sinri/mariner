@@ -1,10 +1,11 @@
-package io.github.sinri.mariner.apostle;
+package io.github.sinri.mariner.task;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
+@Deprecated
 public class Apostle {
     private final ExecutorService executorService;
     private final ExecutorService callbackService;
