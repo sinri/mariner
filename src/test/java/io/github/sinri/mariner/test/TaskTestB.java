@@ -1,8 +1,8 @@
 package io.github.sinri.mariner.test;
 
 import io.github.sinri.mariner.task.ringdial.MarinerCronExpression;
+import io.github.sinri.mariner.task.ringdial.MarinerRingDial;
 import io.github.sinri.mariner.task.ringdial.MarinerRingDialPlan;
-import io.github.sinri.mariner.task.ringdial.RingDial;
 
 import java.util.Collection;
 import java.util.Date;
@@ -10,11 +10,11 @@ import java.util.List;
 
 public class TaskTestB {
     public static void main(String[] args) {
-        RingDial ringDial = new RingDialImpl();
+        MarinerRingDial ringDial = new RingDialImpl();
         ringDial.start();
     }
 
-    private static class RingDialImpl extends RingDial {
+    private static class RingDialImpl extends MarinerRingDial {
 
         @Override
         protected Collection<MarinerRingDialPlan> fetchPlans() {

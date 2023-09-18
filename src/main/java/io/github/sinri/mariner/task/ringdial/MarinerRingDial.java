@@ -7,12 +7,16 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public abstract class RingDial {
+/**
+ * 致敬大航海时代的计时工具。
+ * 定时任务装置，由一个分钟维度调度器和一个无限大小的线程池组成。
+ */
+public abstract class MarinerRingDial {
     private final ScheduledExecutorService scheduler;
 
     private final ExecutorService workerPool;
 
-    public RingDial() {
+    public MarinerRingDial() {
         this.scheduler = Executors.newSingleThreadScheduledExecutor();
         this.workerPool = Executors.newCachedThreadPool();
     }

@@ -4,12 +4,19 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class Inquisitor {
+/**
+ * 一个可有限扩展的线程池支撑的带优先级任务处理中心
+ */
+public class MarinerInquisitor {
 
     private final ThreadPoolExecutor threadPoolExecutor;
 
-
-    public Inquisitor(
+    /**
+     * @param corePoolSize          基础线程池大小
+     * @param maximumPoolSize       线程池最大的大小
+     * @param keepAliveTimeInSecond 线程池中线程最长存活时间
+     */
+    public MarinerInquisitor(
             int corePoolSize,
             int maximumPoolSize,
             long keepAliveTimeInSecond
@@ -19,11 +26,12 @@ public class Inquisitor {
                 maximumPoolSize,
                 keepAliveTimeInSecond,
                 TimeUnit.SECONDS,
-                new PriorityBlockingQueue<Runnable>()
+                new PriorityBlockingQueue<>()
         );
+        this.threadPoolExecutor.allowCoreThreadTimeOut(true);
     }
 
-    public void submitTask(InquisitionTask inquisitionTask) {
+    public void submitTask(MarinerInquisitionTask inquisitionTask) {
         this.threadPoolExecutor.execute(inquisitionTask);
     }
 
@@ -43,9 +51,5 @@ public class Inquisitor {
                 break;
             }
         }
-
-//        while (!this.executorService.isTerminated()) {
-//            // Wait until all threads are finish,and also you can use "executor.awaitTermination();" to wait
-//        }
     }
 }

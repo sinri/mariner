@@ -1,14 +1,14 @@
 package io.github.sinri.mariner.test;
 
-import io.github.sinri.mariner.task.inquisition.InquisitionTask;
-import io.github.sinri.mariner.task.inquisition.Inquisitor;
+import io.github.sinri.mariner.task.inquisition.MarinerInquisitionTask;
+import io.github.sinri.mariner.task.inquisition.MarinerInquisitor;
 
 public class TaskTestA {
     public static void main(String[] args) throws InterruptedException {
-        Inquisitor inquisitor = new Inquisitor(2, 4, 5);
+        MarinerInquisitor inquisitor = new MarinerInquisitor(2, 4, 5);
 
         for (int i = 0; i < 20; i++) {
-            inquisitor.submitTask(new InquisitionImpl(i, InquisitionTask.PRIORITY_TASK_BASE));
+            inquisitor.submitTask(new InquisitionImpl(i, 100));
         }
 
         Thread.sleep(10_000L);
@@ -17,7 +17,7 @@ public class TaskTestA {
         System.out.println(System.currentTimeMillis() + " | NOW SHUTDOWN");
     }
 
-    private static class InquisitionImpl extends InquisitionTask {
+    private static class InquisitionImpl extends MarinerInquisitionTask {
         private final int inquisitionId;
         private final int priority;
         private final long appliedTime;
@@ -40,7 +40,7 @@ public class TaskTestA {
         }
 
         @Override
-        public Integer getPriority() {
+        public int getPriority() {
             return priority;
         }
 
