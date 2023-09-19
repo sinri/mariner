@@ -15,6 +15,14 @@ public class MarinerEvent {
         this.resultId = UUID.randomUUID().toString();
     }
 
+    public static MarinerEvent withResult(Object result, long delay, TimeUnit unit) {
+        return MarinerEventChain.getInstance().registerHead(
+                () -> result,
+                delay,
+                unit
+        );
+    }
+
     public static MarinerEvent withResult(Object result) {
         return MarinerEventChain.getInstance().registerHead(
                 () -> result,
