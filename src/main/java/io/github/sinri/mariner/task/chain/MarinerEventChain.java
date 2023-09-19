@@ -7,7 +7,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class MarinerEventChain {
-    private static final MarinerEventChain instance = new MarinerEventChain(1);
+    private static MarinerEventChain instance;
     private final ScheduledExecutorService scheduler;
     private final EventRelationship relationship;
 
@@ -16,30 +16,44 @@ public class MarinerEventChain {
         this.relationship = new EventRelationship();
     }
 
+    public static void start() {
+        instance = new MarinerEventChain(1);
+    }
+
     static MarinerEventChain getInstance() {
         return instance;
     }
 
-    void execute(EventHandler resultGenerator) {
+    <I, O> void execute(EventHandler<I, O> resultGenerator) {
         this.scheduler.execute(resultGenerator);
     }
 
     void notifyConsumersWhenResultConfirmed(String resultId) {
-        this.relationship.callHandlersWhenEventFinished(resultId);
+        this.scheduler.schedule(() -> relationship.callHandlersWhenEventFinished(resultId), 100, TimeUnit.MILLISECONDS);
+//        this.relationship.callHandlersWhenEventFinished(resultId);
     }
 
     public static void stop() {
         instance.stopScheduler();
     }
 
-    MarinerEvent registerHead(Supplier<Object> supplier, long delay, TimeUnit unit) {
-        EventHandler resultGenerator = new EventHandler(result -> supplier.get());
+    <T> MarinerEvent<T> registerHead(Supplier<T> supplier) {
+        System.out.println("io.github.sinri.mariner.task.chain.MarinerEventChain.registerHead(java.util.function.Supplier<T>)");
+        EventHandler<Object, T> resultGenerator = new EventHandler<>(result -> supplier.get());
+        this.scheduler.execute(resultGenerator);
+        return resultGenerator.getOutputEvent();
+    }
+
+    <T> MarinerEvent<T> registerHead(Supplier<T> supplier, long delay, TimeUnit unit) {
+        System.out.println("io.github.sinri.mariner.task.chain.MarinerEventChain.registerHead(java.util.function.Supplier<T>, long, java.util.concurrent.TimeUnit)");
+        EventHandler<Object, T> resultGenerator = new EventHandler<>(result -> supplier.get());
         this.scheduler.schedule(resultGenerator, delay, unit);
         return resultGenerator.getOutputEvent();
     }
 
-    MarinerEvent registerTail(MarinerEvent previousResult, Function<MarinerEvent, Object> func) {
-        EventHandler resultGenerator = new EventHandler(previousResult, func);
+    <I, O> MarinerEvent<O> registerTail(MarinerEvent<I> previousResult, Function<MarinerEvent<I>, O> func) {
+        System.out.println("io.github.sinri.mariner.task.chain.MarinerEventChain.registerTail");
+        EventHandler<I, O> resultGenerator = new EventHandler<>(previousResult, func);
         this.relationship.registerHandlerForEvent(previousResult, resultGenerator);
         return resultGenerator.getOutputEvent();
     }

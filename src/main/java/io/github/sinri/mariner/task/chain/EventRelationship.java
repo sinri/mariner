@@ -6,9 +6,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 class EventRelationship {
-    private final Map<String, List<EventHandler>> eventHandlersMap = new ConcurrentHashMap<>();
+    private final Map<String, List<EventHandler<?, ?>>> eventHandlersMap = new ConcurrentHashMap<>();
 
-    void registerHandlerForEvent(MarinerEvent inputEvent, EventHandler eventHandler) {
+    <I, O> void registerHandlerForEvent(MarinerEvent<I> inputEvent, EventHandler<I, O> eventHandler) {
+        System.out.println("io.github.sinri.mariner.task.chain.EventRelationship.registerHandlerForEvent");
         if (!inputEvent.isDone() && !inputEvent.isFailed()) {
             this.eventHandlersMap.computeIfAbsent(
                             inputEvent.getResultId(),
@@ -26,7 +27,8 @@ class EventRelationship {
      * @param resultId the ID of the result that just finished
      */
     void callHandlersWhenEventFinished(String resultId) {
-        List<EventHandler> resultConsumers = this.eventHandlersMap.remove(resultId);
+        System.out.println("io.github.sinri.mariner.task.chain.EventRelationship.callHandlersWhenEventFinished");
+        List<EventHandler<?, ?>> resultConsumers = this.eventHandlersMap.remove(resultId);
         if (resultConsumers != null) {
             resultConsumers.forEach(consumer -> {
                 MarinerEventChain.getInstance().execute(consumer);

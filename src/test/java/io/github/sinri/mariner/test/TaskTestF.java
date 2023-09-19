@@ -1,69 +1,89 @@
 package io.github.sinri.mariner.test;
 
+import io.github.sinri.mariner.logger.MarinerLogger;
 import io.github.sinri.mariner.task.chain.MarinerEvent;
 import io.github.sinri.mariner.task.chain.MarinerEventChain;
 
+import java.util.concurrent.TimeUnit;
+
 public class TaskTestF {
     public static void main(String[] args) throws InterruptedException {
-//        MarinerEventChain chain = MarinerEventChain.getInstance();
+        MarinerEventChain.start();
+
+        MarinerLogger logger = new MarinerLogger("TaskTestF");
 
         MarinerEvent.withResult(1)
                 .handleEventResult(o -> {
-                    System.out.println("o : " + o);
-                    return (int) o + 1;
+                    logger.info(log -> log.attribute("o", o));
+                    return o + 1;
                 })
                 .handleEventResult(o -> {
-                    System.out.println("o : " + o);
-                    return (int) o + 1;
+                    logger.info(log -> log.attribute("o", o));
+                    return o + 1;
                 })
                 .handleEventResult(o -> {
-                    System.out.println("o : " + o);
-                    return (int) o + 1;
+                    logger.info(log -> log.attribute("o", o));
+                    return o + 1;
                 })
                 .handleEventResult(o -> {
-                    System.out.println("o : " + o);
-                    return (int) o + 1;
+                    logger.info(log -> log.attribute("o", o));
+                    return o + 1;
                 })
                 .handleEventResult(o -> {
-                    System.out.println("o : " + o);
+                    logger.info(log -> log.attribute("o", o));
                     throw new RuntimeException("runtime error!");
                 })
                 .handleEventFailure(throwable -> {
-                    System.out.println(throwable.getMessage());
+                    logger.exception(throwable, "emmm");
                     return 100;
                 })
                 .handleEvent(result -> {
-                    System.out.println(result);
+                    logger.notice(log -> log.attribute("result", result));
                     return 0;
                 })
                 .handleEvent(o -> {
-                    System.out.println("o : " + o);
-                    return (int) o + 1;
+                    logger.info(log -> log.attribute("o", o));
+                    return o + 1;
                 }, throwable -> {
-                    System.out.println(throwable.getMessage());
+                    logger.exception(throwable);
                     return 200;
                 })
                 .handleEvent(o -> {
-                    System.out.println("o : " + o);
+                    logger.info(log -> log.attribute("o", o));
                     throw new RuntimeException("!!!");
                 }, throwable -> {
-                    System.out.println(throwable.getMessage());
+                    logger.exception(throwable);
                     return 300;
                 })
                 .handleEvent(o -> {
-                    System.out.println("o : " + o);
-                    return (int) o + 1;
+                    logger.info(log -> log.attribute("o", o));
+                    return o + 1;
                 }, throwable -> {
-                    System.out.println(throwable.getMessage());
+                    logger.exception(throwable);
                     return 300;
                 })
                 .handleEvent(result -> {
-                    System.out.println(result);
+                    logger.notice(log -> log.attribute("result", result));
+
+                    MarinerEvent.withResult("A", 1, TimeUnit.SECONDS)
+                            .handleEventResult(s -> {
+                                logger.info(log -> log.attribute("s", s));
+                                return s + "B";
+                            })
+                            .handleEventResult(s -> {
+                                logger.info(log -> log.attribute("s", s));
+                                return s + "C";
+                            })
+                            .handleEventResult(s -> {
+                                logger.info(log -> log.attribute("s", s));
+                                return s + "D";
+                            });
+
                     return result;
                 });
 
 
-        Thread.sleep(1000L);
-        MarinerEventChain.stop();
+//        Thread.sleep(5000L);
+//        MarinerEventChain.stop();
     }
 }
