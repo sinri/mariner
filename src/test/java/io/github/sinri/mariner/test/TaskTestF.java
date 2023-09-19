@@ -1,43 +1,42 @@
 package io.github.sinri.mariner.test;
 
-import io.github.sinri.mariner.task.chain.MarinerChain;
-import io.github.sinri.mariner.task.chain.Result;
-
-import java.util.concurrent.TimeUnit;
+import io.github.sinri.mariner.task.chain.MarinerEvent;
+import io.github.sinri.mariner.task.chain.MarinerEventChain;
 
 public class TaskTestF {
     public static void main(String[] args) throws InterruptedException {
-        MarinerChain chain = new MarinerChain();
+        MarinerEventChain chain = MarinerEventChain.getInstance();
 
-        Result result1 = chain.registerHead(() -> 1, 1, TimeUnit.MILLISECONDS);
-        Result result2 = chain.registerTail(result1, r -> {
-            if (r.isDone()) {
-                int x = (int) r.getResult();
-                System.out.println("x is " + x);
-                return x + 1;
-            }
-            throw new RuntimeException(r.getFailure());
-        });
-        chain.registerTail(result2, r -> {
-                    if (r.isDone()) {
-                        int x = (int) r.getResult();
-                        System.out.println("x is " + x);
-                        return x + 1;
-                    }
-                    throw new RuntimeException(r.getFailure());
+        MarinerEvent.withResult(1)
+                .handleEventResult(o -> {
+                    System.out.println("o : " + o);
+                    return (int) o + 1;
                 })
-                .chain(r -> {
-                    if (r.isDone()) {
-                        int x = (int) r.getResult();
-                        System.out.println("x is " + x);
-                        return x + 1;
-                    }
-                    throw new RuntimeException(r.getFailure());
+                .handleEventResult(o -> {
+                    System.out.println("o : " + o);
+                    return (int) o + 1;
                 })
-                .chainForDone(x -> {
-                    System.out.println("x is " + x);
-                    return (int) x + 1;
+                .handleEventResult(o -> {
+                    System.out.println("o : " + o);
+                    return (int) o + 1;
+                })
+                .handleEventResult(o -> {
+                    System.out.println("o : " + o);
+                    return (int) o + 1;
+                })
+                .handleEventResult(o -> {
+                    System.out.println("o : " + o);
+                    throw new RuntimeException("runtime error!");
+                })
+                .handleEventFailure(throwable -> {
+                    System.out.println(throwable.getMessage());
+                    return 100;
+                })
+                .handleEvent(result -> {
+                    System.out.println(result);
+                    return result;
                 });
+
 
         Thread.sleep(1000L);
         chain.stop();
