@@ -36,21 +36,21 @@ public class TaskTestF {
                     System.out.println(result);
                     return 0;
                 })
-                .handle(o -> {
+                .handleEvent(o -> {
                     System.out.println("o : " + o);
                     return (int) o + 1;
                 }, throwable -> {
                     System.out.println(throwable.getMessage());
                     return 200;
                 })
-                .handle(o -> {
+                .handleEvent(o -> {
                     System.out.println("o : " + o);
                     throw new RuntimeException("!!!");
                 }, throwable -> {
                     System.out.println(throwable.getMessage());
                     return 300;
                 })
-                .handle(o -> {
+                .handleEvent(o -> {
                     System.out.println("o : " + o);
                     return (int) o + 1;
                 }, throwable -> {

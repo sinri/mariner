@@ -6,17 +6,17 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 class EventRelationship {
-    private final Map<String, List<EventHandler>> consumerMap = new ConcurrentHashMap<>();
+    private final Map<String, List<EventHandler>> eventHandlersMap = new ConcurrentHashMap<>();
 
-    void linkResultAndConsumer(MarinerEvent previousResult, EventHandler resultGenerator) {
-        if (!previousResult.isDone() && !previousResult.isFailed()) {
-            this.consumerMap.computeIfAbsent(
-                            previousResult.getResultId(),
+    void registerHandlerForEvent(MarinerEvent inputEvent, EventHandler eventHandler) {
+        if (!inputEvent.isDone() && !inputEvent.isFailed()) {
+            this.eventHandlersMap.computeIfAbsent(
+                            inputEvent.getResultId(),
                             string -> new ArrayList<>()
                     )
-                    .add(resultGenerator);
+                    .add(eventHandler);
         } else {
-            MarinerEventChain.getInstance().execute(resultGenerator);
+            MarinerEventChain.getInstance().execute(eventHandler);
         }
     }
 
@@ -25,8 +25,8 @@ class EventRelationship {
      *
      * @param resultId the ID of the result that just finished
      */
-    void notifyConsumersWhenResultConfirmed(String resultId) {
-        List<EventHandler> resultConsumers = this.consumerMap.remove(resultId);
+    void callHandlersWhenEventFinished(String resultId) {
+        List<EventHandler> resultConsumers = this.eventHandlersMap.remove(resultId);
         if (resultConsumers != null) {
             resultConsumers.forEach(consumer -> {
                 MarinerEventChain.getInstance().execute(consumer);

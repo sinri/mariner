@@ -5,6 +5,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class MarinerEvent {
+    private final String resultId;
+    private boolean done = false;
+    private Object result = null;
+    private boolean failed = false;
+    private Throwable failure = null;
+
     public MarinerEvent() {
         this.resultId = UUID.randomUUID().toString();
     }
@@ -16,12 +22,6 @@ public class MarinerEvent {
                 TimeUnit.MILLISECONDS
         );
     }
-
-    private final String resultId;
-    private boolean done = false;
-    private Object result = null;
-    private boolean failed = false;
-    private Throwable failure = null;
 
     public static MarinerEvent withFailure(Throwable failure) {
         return MarinerEventChain.getInstance().registerHead(
@@ -63,48 +63,31 @@ public class MarinerEvent {
         this.failure = failure;
     }
 
-    public MarinerEvent handleEvent(Function<MarinerEvent, Object> func) {
-        return MarinerEventChain.getInstance().registerTail(this, func);
-    }
-
-    public MarinerEvent handleEventResult(Function<Object, Object> doneFunc) {
-        return MarinerEventChain.getInstance().registerTail(this, r -> {
+    /**
+     * @param doneFunc   when input event done: if this function is not null, execute it with the result of input event to generate result for output event; or use result of input event directly.
+     * @param failedFunc when input event failed: if this function is not null, execute it with the failure of input event to generate result for output event; or wrap the failure of input event and throw out.
+     * @return the output event handled
+     */
+    public MarinerEvent handleEvent(Function<Object, Object> doneFunc, Function<Throwable, Object> failedFunc) {
+        return handleEvent(r -> {
             if (r.isDone()) {
                 try {
-                    return doneFunc.apply(r.getResult());
-                } catch (Throwable throwable) {
-                    throw new RuntimeException(throwable);
-                }
-            }
-            throw new RuntimeException(r.getFailure());
-        });
-    }
-
-    public MarinerEvent handleEventFailure(Function<Throwable, Object> failedFunc) {
-        return MarinerEventChain.getInstance().registerTail(this, r -> {
-            if (r.isFailed()) {
-                try {
-                    return failedFunc.apply(r.getFailure());
-                } catch (Throwable throwable) {
-                    throw new RuntimeException(throwable);
-                }
-            }
-            return this.getResult();
-        });
-    }
-
-    public MarinerEvent handle(Function<Object, Object> doneFunc, Function<Throwable, Object> failedFunc) {
-        return MarinerEventChain.getInstance().registerTail(this, r -> {
-            if (r.isDone()) {
-                try {
-                    return doneFunc.apply(r.getResult());
+                    if (doneFunc != null) {
+                        return doneFunc.apply(r.getResult());
+                    } else {
+                        return r.getResult();
+                    }
                 } catch (Throwable throwable) {
                     throw new RuntimeException(throwable);
                 }
             }
             if (r.isFailed()) {
                 try {
-                    return failedFunc.apply(r.getFailure());
+                    if (failedFunc != null) {
+                        return failedFunc.apply(r.getFailure());
+                    } else {
+                        throw new RuntimeException(r.getFailure());
+                    }
                 } catch (Throwable throwable) {
                     throw new RuntimeException(throwable);
                 }
@@ -112,6 +95,20 @@ public class MarinerEvent {
             throw new RuntimeException("NEVER THIS");
         });
     }
+
+
+    public MarinerEvent handleEvent(Function<MarinerEvent, Object> func) {
+        return MarinerEventChain.getInstance().registerTail(this, func);
+    }
+
+    public MarinerEvent handleEventResult(Function<Object, Object> doneFunc) {
+        return this.handleEvent(doneFunc, null);
+    }
+
+    public MarinerEvent handleEventFailure(Function<Throwable, Object> failedFunc) {
+        return this.handleEvent(null, failedFunc);
+    }
+
 
     @Override
     public String toString() {

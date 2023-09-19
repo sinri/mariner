@@ -25,7 +25,7 @@ public class MarinerEventChain {
     }
 
     void notifyConsumersWhenResultConfirmed(String resultId) {
-        this.relationship.notifyConsumersWhenResultConfirmed(resultId);
+        this.relationship.callHandlersWhenEventFinished(resultId);
     }
 
     public static void stop() {
@@ -40,7 +40,7 @@ public class MarinerEventChain {
 
     MarinerEvent registerTail(MarinerEvent previousResult, Function<MarinerEvent, Object> func) {
         EventHandler resultGenerator = new EventHandler(previousResult, func);
-        this.relationship.linkResultAndConsumer(previousResult, resultGenerator);
+        this.relationship.registerHandlerForEvent(previousResult, resultGenerator);
         return resultGenerator.getOutputEvent();
     }
 
