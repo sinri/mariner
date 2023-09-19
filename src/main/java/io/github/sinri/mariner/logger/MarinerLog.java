@@ -1,7 +1,7 @@
 package io.github.sinri.mariner.logger;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.TreeMap;
 
 public class MarinerLog {
     private final MarinerLogLevel level;
@@ -13,7 +13,7 @@ public class MarinerLog {
         this.timestamp = System.currentTimeMillis();
         this.topic = topic;
         this.level = level;
-        this.attributes = new ConcurrentHashMap<>();
+        this.attributes = new TreeMap<>();
     }
 
     public MarinerLog attribute(String name, Object value) {

@@ -47,14 +47,18 @@ public class MarinerLogger {
     }
 
     public void exception(Throwable throwable) {
-        this.error(log -> log
-                .attribute("exception", throwable)
-        );
+        this.exception(throwable, log -> {
+        });
     }
 
     public void exception(Throwable throwable, String message) {
-        this.error(log -> log.attribute("msg", message)
-                .attribute("exception", throwable)
-        );
+        this.exception(throwable, log -> log.attribute("msg", message));
+    }
+
+    public void exception(Throwable throwable, Consumer<MarinerLog> editor) {
+        this.error(log -> {
+            editor.accept(log);
+            log.attribute("exception", throwable);
+        });
     }
 }
