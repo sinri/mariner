@@ -10,12 +10,13 @@ public class MarinerEventChain {
     private static final MarinerEventChain instance = new MarinerEventChain(1);
     private final ScheduledExecutorService scheduler;
     private final EventRelationship relationship;
+
     private MarinerEventChain(int corePoolSize) {
         this.scheduler = Executors.newScheduledThreadPool(corePoolSize);
         this.relationship = new EventRelationship();
     }
 
-    public static MarinerEventChain getInstance() {
+    static MarinerEventChain getInstance() {
         return instance;
     }
 
@@ -27,20 +28,23 @@ public class MarinerEventChain {
         this.relationship.notifyConsumersWhenResultConfirmed(resultId);
     }
 
+    public static void stop() {
+        instance.stopScheduler();
+    }
+
     MarinerEvent registerHead(Supplier<Object> supplier, long delay, TimeUnit unit) {
         EventHandler resultGenerator = new EventHandler(result -> supplier.get());
         this.scheduler.schedule(resultGenerator, delay, unit);
-        return resultGenerator.getResult();
+        return resultGenerator.getOutputEvent();
     }
 
     MarinerEvent registerTail(MarinerEvent previousResult, Function<MarinerEvent, Object> func) {
         EventHandler resultGenerator = new EventHandler(previousResult, func);
         this.relationship.linkResultAndConsumer(previousResult, resultGenerator);
-        return resultGenerator.getResult();
+        return resultGenerator.getOutputEvent();
     }
 
-
-    public void stop() {
+    void stopScheduler() {
         this.scheduler.shutdown();
         while (true) {
             try {

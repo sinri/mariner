@@ -5,36 +5,36 @@ import java.util.function.Function;
 
 class EventHandler implements Runnable, Consumer<MarinerEvent> {
     private final Function<MarinerEvent, Object> func;
-    private final MarinerEvent result;
-    private MarinerEvent previousResult = null;
+    private final MarinerEvent outputEvent;
+    private final MarinerEvent inputEvent;
 
-    public EventHandler(MarinerEvent previousResult, Function<MarinerEvent, Object> func) {
-        this.result = new MarinerEvent();
-        this.previousResult = previousResult;
+    EventHandler(MarinerEvent inputEvent, Function<MarinerEvent, Object> func) {
+        this.outputEvent = new MarinerEvent();
+        this.inputEvent = inputEvent;
         this.func = func;
     }
 
-    public EventHandler(Function<MarinerEvent, Object> func) {
+    EventHandler(Function<MarinerEvent, Object> func) {
         this(null, func);
     }
 
     @Override
     public void run() {
-        accept(this.previousResult);
-        MarinerEventChain.getInstance().notifyConsumersWhenResultConfirmed(this.getResult().getResultId());
+        accept(this.inputEvent);
+        MarinerEventChain.getInstance().notifyConsumersWhenResultConfirmed(this.getOutputEvent().getResultId());
     }
 
-    public MarinerEvent getResult() {
-        return result;
+    public MarinerEvent getOutputEvent() {
+        return outputEvent;
     }
 
     @Override
     public void accept(MarinerEvent result) {
         try {
             Object o = this.func.apply(result);
-            this.result.declareDone(o);
+            this.outputEvent.declareDone(o);
         } catch (Exception e) {
-            this.result.declareFailed(e);
+            this.outputEvent.declareFailed(e);
         }
     }
 }

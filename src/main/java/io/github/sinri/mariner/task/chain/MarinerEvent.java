@@ -93,6 +93,26 @@ public class MarinerEvent {
         });
     }
 
+    public MarinerEvent handle(Function<Object, Object> doneFunc, Function<Throwable, Object> failedFunc) {
+        return MarinerEventChain.getInstance().registerTail(this, r -> {
+            if (r.isDone()) {
+                try {
+                    return doneFunc.apply(r.getResult());
+                } catch (Throwable throwable) {
+                    throw new RuntimeException(throwable);
+                }
+            }
+            if (r.isFailed()) {
+                try {
+                    return failedFunc.apply(r.getFailure());
+                } catch (Throwable throwable) {
+                    throw new RuntimeException(throwable);
+                }
+            }
+            throw new RuntimeException("NEVER THIS");
+        });
+    }
+
     @Override
     public String toString() {
         return "Result{" +
